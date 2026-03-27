@@ -1,21 +1,12 @@
-import express, { Request, Response } from "express";
-
+import express from "express";
+import { config } from "dotenv";
+config();
 const app = express();
-const port = Number(process.env.PORT) || 3000;
 
-app.use(express.json());
-
-app.get("/health", (_req: Request, res: Response) => {
-  res.status(200).json({ status: "ok" });
+app.get("/", (_, res) => {
+  res.send("Hello World!");
 });
-
-app.get("/", (_req: Request, res: Response) => {
-  res.status(200).json({
-    message: "Backend is running.",
-    healthCheck: "/health",
-  });
-});
-
-app.listen(port, () => {
-  console.log(`Server listening on http://localhost:${port}`);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server started on port ${PORT}`);
 });

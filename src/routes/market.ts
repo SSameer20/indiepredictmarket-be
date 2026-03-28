@@ -1,48 +1,46 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { prisma } from "../db/db";
+import { marketSchema } from "../lib/schemas";
+import logger from "../lib/logger";
 
 const router = Router();
 
+// Admin auth middleware
 const adminAuth = (req: Request, res: Response, next: NextFunction): any => {
-  const secret = req.headers["x-admin-secret"];
-  // For MVP / local dev we'll check against process.env.ADMIN_SECRET
-  if (secret !== process.env.ADMIN_SECRET) {
-    return res.status(401).json({ error: "Unauthorized: admin secret missing or incorrect" });
+  if (req.headers["x-admin-secret"] !== process.env.ADMIN_SECRET) {
+    return res.status(401).json({ error: "Unauthorized" });
   }
   next();
 };
 
-// Create Market (Admin)
+// POST /api/markets — create market (admin only)
 router.post("/", adminAuth, async (req: Request, res: Response): Promise<any> => {
+  const parse = marketSchema.safeParse(req.body);
+  if (!parse.success) {
+    return res.status(400).json({ error: parse.error.issues[0].message });
+  }
+
+  const { title, endTime } = parse.data;
+
   try {
-    const { title, endTime } = req.body;
-
-    if (!title || !endTime) {
-      return res.status(400).json({ error: "title and endTime are required" });
-    }
-
     const market = await prisma.market.create({
-      data: {
-        title,
-        endTime: new Date(endTime),
-      }
+      data: { title, endTime: new Date(endTime) }
     });
-
+    logger.info({ marketId: market.id, title }, "Market created");
     res.json({ market });
   } catch (error) {
-    console.error("Error creating market:", error);
+    logger.error({ error }, "Error creating market");
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
-// Helper to view all markets
-router.get("/", async (req: Request, res: Response) => {
+// GET /api/markets — list all markets
+router.get("/", async (_req: Request, res: Response) => {
   try {
-    const markets = await prisma.market.findMany({
-      orderBy: { endTime: 'asc' }
-    });
+    const markets = await prisma.market.findMany({ orderBy: { endTime: "asc" } });
     res.json({ markets });
   } catch (error) {
+    logger.error({ error }, "Error fetching markets");
     res.status(500).json({ error: "Internal server error" });
   }
 });

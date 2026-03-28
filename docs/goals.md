@@ -117,22 +117,22 @@
 ### Duplicate Transaction Protection
 
 - description: Enforce unique txHash constraint and pre-check before processing deposits
-- status: todo
+- status: completed
 
 ### Rate Limiting
 
 - description: Limit withdrawal requests (e.g., 1 per minute per user)
-- status: todo
+- status: completed
 
 ### Input Validation
 
 - description: Validate all API payloads using schema validation (Zod or equivalent)
-- status: todo
+- status: completed
 
 ### Logging System
 
 - description: Implement structured logging for deposits, bets, withdrawals, and errors
-- status: todo
+- status: completed
 
 ---
 

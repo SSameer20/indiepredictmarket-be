@@ -1,94 +1,62 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db/db";
+import { betSchema } from "../lib/schemas";
+import logger from "../lib/logger";
 
 const router = Router();
 
-// Place Bet API
-// Normally would use auth middleware, but we'll accept userId in body for MVP simplicity
+// POST /api/bets — place a bet
 router.post("/", async (req: Request, res: Response): Promise<any> => {
+  const parse = betSchema.safeParse(req.body);
+  if (!parse.success) {
+    return res.status(400).json({ error: parse.error.issues[0].message });
+  }
+
+  const { userId, marketId, amount, side } = parse.data;
+
   try {
-    const { userId, marketId, amount, side } = req.body;
-
-    if (!userId || !marketId || !amount || !side) {
-      return res.status(400).json({ error: "userId, marketId, amount, side are required" });
-    }
-
-    if (amount <= 0) {
-      return res.status(400).json({ error: "Bet amount must be positive" });
-    }
-
-    if (side !== "YES" && side !== "NO") {
-      return res.status(400).json({ error: "Side must be YES or NO" });
-    }
-
-    // Atomic transaction for validations + balance deduct + bet creation
     const result = await prisma.$transaction(async (tx: any) => {
-      // Validate User and their balance
       const user = await tx.user.findUnique({ where: { id: userId } });
-      if (!user) {
-        throw new Error("User not found");
-      }
-      if (user.balance < amount) {
-        throw new Error("Insufficient balance");
-      }
+      if (!user) throw new Error("User not found");
+      if (user.balance < amount) throw new Error("Insufficient balance");
 
-      // Bet Validation Guards
-      // 1) Validate market exists
       const market = await tx.market.findUnique({ where: { id: marketId } });
-      if (!market) {
-        throw new Error("Market not found");
-      }
+      if (!market) throw new Error("Market not found");
+      if (market.resolved) throw new Error("Market is already resolved");
+      if (new Date() > new Date(market.endTime)) throw new Error("Market betting has ended");
 
-      // 2) Prevent betting on resolved markets
-      if (market.resolved) {
-        throw new Error("Market is already resolved");
-      }
-
-      // 3) Prevent betting after endTime
-      if (new Date() > new Date(market.endTime)) {
-        throw new Error("Market betting has ended");
-      }
-
-      // Deduct balance
       await tx.user.update({
         where: { id: userId },
-        data: {
-          balance: { decrement: amount }
-        }
+        data: { balance: { decrement: amount } }
       });
 
-      // Create Bet entry
       const bet = await tx.bet.create({
-        data: {
-          userId,
-          marketId,
-          amount,
-          side
-        }
+        data: { userId, marketId, amount, side }
       });
 
       return { bet, newBalance: user.balance - amount };
     });
 
+    logger.info({ userId, marketId, amount, side }, "Bet placed");
     res.json(result);
   } catch (error: any) {
-    console.error("Bet placement error:", error);
-    // If it's a validation error we threw manually
-    if (error.message && [
-      "User not found", 
-      "Insufficient balance", 
-      "Market not found", 
-      "Market is already resolved", 
+    const knownErrors = [
+      "User not found",
+      "Insufficient balance",
+      "Market not found",
+      "Market is already resolved",
       "Market betting has ended"
-    ].includes(error.message)) {
+    ];
+    if (knownErrors.includes(error.message)) {
+      logger.warn({ userId, error: error.message }, "Bet rejection");
       return res.status(400).json({ error: error.message });
     }
-    
-    res.status(500).json({ error: "Internal server error during bet processing" });
+    logger.error({ error }, "Bet placement error");
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-// Helper to view user bets
+// GET /api/bets/user/:userId — user's bets
 router.get("/user/:userId", async (req: Request, res: Response): Promise<any> => {
   try {
     const bets = await prisma.bet.findMany({
@@ -98,6 +66,7 @@ router.get("/user/:userId", async (req: Request, res: Response): Promise<any> =>
     });
     res.json({ bets });
   } catch (error) {
+    logger.error({ error }, "Error fetching bets");
     res.status(500).json({ error: "Internal server error" });
   }
 });

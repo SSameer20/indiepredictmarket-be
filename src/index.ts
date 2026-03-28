@@ -4,6 +4,7 @@ import userRoutes from "./routes/user";
 import marketRoutes from "./routes/market";
 import betRoutes from "./routes/bet";
 import withdrawRoutes from "./routes/withdraw";
+import adminRoutes from "./routes/admin";
 import { startDepositListener } from "./services/depositListener";
 import logger from "./lib/logger";
 
@@ -16,6 +17,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/markets", marketRoutes);
 app.use("/api/bets", betRoutes);
 app.use("/api/withdraw", withdrawRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.get("/", (_, res) => {
   res.send("IndiePredictMarket Backend running.");

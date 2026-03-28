@@ -74,17 +74,17 @@
 ### Resolve Market
 
 - description: Admin sets outcome (YES/NO) and marks market as resolved
-- status: todo
+- status: completed
 
 ### Payout Engine
 
 - description: Distribute winnings proportionally to users based on total pool and winning side
-- status: todo
+- status: completed
 
 ### Idempotent Resolution
 
 - description: Ensure market resolution runs only once (no double payouts)
-- status: todo
+- status: completed
 
 ---
 
@@ -165,17 +165,17 @@
 ### Seed IPL Markets
 
 - description: Create initial IPL prediction markets manually for early usage
-- status: todo
+- status: completed
 
 ### Initial Liquidity
 
 - description: Seed markets with sample bets to avoid empty pools
-- status: todo
+- status: completed
 
 ### Admin Dashboard
 
 - description: View users, balances, transactions, and market performance
-- status: todo
+- status: completed
 
 ---
 
@@ -184,16 +184,16 @@
 ### Decimal Precision Migration
 
 - description: Replace Float with Decimal for accurate financial calculations
-- status: pending
+- status: documented
 
 ### Multi-token Support
 
 - description: Extend system to support multiple ERC20 tokens
-- status: pending
+- status: documented
 
 ### Non-Custodial Architecture
 
 - description: Move betting and payout logic to smart contracts for trustless execution
-- status: pending
+- status: documented
 
 ---

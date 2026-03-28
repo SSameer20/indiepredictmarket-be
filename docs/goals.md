@@ -55,17 +55,17 @@
 ### Create Market (Admin)
 
 - description: API to create prediction markets with title and endTime, protected by admin auth
-- status: todo
+- status: completed
 
 ### Place Bet API
 
 - description: Deduct user balance, validate market state, create bet entry with YES/NO side
-- status: todo
+- status: completed
 
 ### Bet Validation Guards
 
 - description: Prevent betting on resolved markets, after endTime, or with insufficient balance
-- status: todo
+- status: completed
 
 ---
 

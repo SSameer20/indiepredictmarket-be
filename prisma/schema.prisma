@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -16,7 +14,8 @@ datasource db {
 model User {
   id            String        @id @default(uuid())
   walletAddress String        @unique
-  balance       Float         @default(0)
+  // Phase 8: Float → Decimal for accurate financial calculations
+  balance       Decimal       @default(0) @db.Decimal(18, 6)
   bets          Bet[]
   transactions  Transaction[]
 }
@@ -34,7 +33,8 @@ model Bet {
   id        String   @id @default(uuid())
   userId    String
   marketId  String
-  amount    Float
+  // Phase 8: Float → Decimal for precise bet amounts
+  amount    Decimal  @db.Decimal(18, 6)
   side      String
 
   user      User     @relation(fields: [userId], references: [id])
@@ -46,8 +46,11 @@ model Transaction {
   userId    String
   txHash    String   @unique
   type      String   // "DEPOSIT" | "WITHDRAW"
-  amount    Float
+  // Phase 8: Float → Decimal for precise tx amounts
+  amount    Decimal  @db.Decimal(18, 6)
   status    String   // "CONFIRMED" | "PENDING" | "FAILED"
+  // Phase 8 Multi-token: which token was used (e.g., "MATIC", "USDC")
+  token     String   @default("MATIC")
   createdAt DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id])

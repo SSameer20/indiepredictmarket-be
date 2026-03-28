@@ -93,22 +93,22 @@
 ### Withdraw API
 
 - description: Allow withdrawal only if user balance ≥ 10 and requested amount ≤ balance
-- status: todo
+- status: completed
 
 ### On-chain Transfer
 
 - description: Send USDC from admin wallet to user wallet using ethers.js
-- status: todo
+- status: completed
 
 ### Withdrawal Lifecycle
 
 - description: Track transaction states (PENDING → CONFIRMED → FAILED)
-- status: todo
+- status: completed
 
 ### Failure Recovery
 
 - description: Refund balance if withdrawal transaction fails
-- status: todo
+- status: completed
 
 ---
 

@@ -3,6 +3,7 @@ import { config } from "dotenv";
 import userRoutes from "./routes/user";
 import marketRoutes from "./routes/market";
 import betRoutes from "./routes/bet";
+import withdrawRoutes from "./routes/withdraw";
 import { startDepositListener } from "./services/depositListener";
 
 config();
@@ -13,6 +14,7 @@ app.use(express.json());
 app.use("/api/users", userRoutes);
 app.use("/api/markets", marketRoutes);
 app.use("/api/bets", betRoutes);
+app.use("/api/withdraw", withdrawRoutes);
 
 app.get("/", (_, res) => {
   res.send("IndiePredictMarket Backend running.");

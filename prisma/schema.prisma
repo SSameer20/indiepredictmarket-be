@@ -14,10 +14,11 @@ datasource db {
 
 
 model User {
-  id            String  @id @default(uuid())
-  walletAddress String  @unique
-  balance       Float   @default(0)
+  id            String        @id @default(uuid())
+  walletAddress String        @unique
+  balance       Float         @default(0)
   bets          Bet[]
+  transactions  Transaction[]
 }
 
 model Market {
@@ -38,4 +39,16 @@ model Bet {
 
   user      User     @relation(fields: [userId], references: [id])
   market    Market   @relation(fields: [marketId], references: [id])
+}
+
+model Transaction {
+  id        String   @id @default(uuid())
+  userId    String
+  txHash    String   @unique
+  type      String   // "DEPOSIT" | "WITHDRAW"
+  amount    Float
+  status    String   // "CONFIRMED" | "PENDING" | "FAILED"
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
 }

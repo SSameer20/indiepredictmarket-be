@@ -1,0 +1,146 @@
+openapi: 3.0.3
+info:
+  title: IndiePredictMarket API
+  description: Backend API for custodial Web2 prediction market with Web3 payments (Polygon).
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+    description: Local development server
+
+paths:
+  /users/auth:
+    post:
+      summary: Authenticate user via wallet address
+      description: Fetches an existing user or creates a new one using their Polygon wallet address.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [walletAddress]
+              properties:
+                walletAddress:
+                  type: string
+                  description: EVM wallet address
+      responses:
+        '200':
+          description: User object containing DB balance and wallet address.
+
+  /markets:
+    get:
+      summary: List all markets
+      description: Returns a list of all prediction markets.
+      responses:
+        '200':
+          description: A list of markets
+          
+    post:
+      summary: Create a new market (Admin)
+      description: Creates a new betting pool. Requires `x-admin-secret` header.
+      parameters:
+        - in: header
+          name: x-admin-secret
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, endTime]
+              properties:
+                title:
+                  type: string
+                endTime:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: the created Market object.
+
+  /bets:
+    post:
+      summary: Place a bet
+      description: Deducts user balance and places a prediction on a specified market.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, marketId, amount, side]
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+                marketId:
+                  type: string
+                  format: uuid
+                amount:
+                  type: number
+                  description: USDC amount (positive)
+                side:
+                  type: string
+                  enum: [YES, NO]
+      responses:
+        '200':
+          description: The bet object and updated user balance
+        '400':
+          description: Validation error or insufficient balance
+
+  /bets/user/{userId}:
+    get:
+      summary: Get user bets
+      description: Returns chronological bet history for a specific user.
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of the user's bets
+
+  /withdraw:
+    post:
+      summary: Withdraw funds to EVM wallet
+      description: Initiates a direct on-chain MATIC/USDC transfer from the admin custodial wallet back to the user's wallet.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, amount]
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+                amount:
+                  type: number
+      responses:
+        '200':
+          description: Withdrawal successful (on-chain tx confirmed)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  txHash:
+                    type: string
+                  amount:
+                    type: number
+        '400':
+          description: Minimum balance of 10 required, or insufficient funds
+        '429':
+          description: Rate limited (1 withdrawal per minute)
+        '500':
+          description: On-chain transfer failed (balance refunded)

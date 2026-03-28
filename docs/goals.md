@@ -141,17 +141,17 @@
 ### Global Error Handling
 
 - description: Implement centralized error handling middleware with proper responses
-- status: todo
+- status: completed
 
 ### API Documentation
 
 - description: Document APIs using Swagger or Postman
-- status: todo
+- status: completed
 
 ### Deployment
 
 - description: Deploy backend and database, configure environment variables securely
-- status: todo
+- status: completed
 
 ---
 

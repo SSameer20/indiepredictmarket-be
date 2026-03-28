@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { prisma } from "../db/db";
 import { withdrawSchema } from "../lib/schemas";
 import { ethers } from "ethers";
@@ -11,7 +11,7 @@ const router = Router();
 const withdrawRateLimit = rateLimit({
   windowMs: 60 * 1000,   // 1 minute
   max: 1,
-  keyGenerator: (req) => req.body?.userId ?? req.ip ?? "unknown",
+  keyGenerator: (req) => req.body?.userId ?? ipKeyGenerator(req.ip ?? "unknown"),
   message: { error: "Too many withdrawal requests. Please wait 1 minute." },
   standardHeaders: true,
   legacyHeaders: false

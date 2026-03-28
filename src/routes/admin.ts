@@ -135,7 +135,7 @@ router.get("/markets", async (_req: Request, res: Response) => {
         const pool: Record<string, { total: number; count: number }> = {};
         for (const row of poolAgg) {
           pool[row.side] = {
-            total: row._sum.amount ?? 0,
+            total: row._sum.amount ? Number(row._sum.amount) : 0,
             count: row._count,
           };
         }
@@ -172,10 +172,10 @@ router.post("/markets/:id/resolve", async (req: Request, res: Response): Promise
     // Fetch all bets
     const allBets = await prisma.bet.findMany({ where: { marketId: String(id) } });
     const winnerBets = allBets.filter((b) => b.side === winningSide);
-    const totalWinPool = winnerBets.reduce((s, b) => s + b.amount, 0);
+    const totalWinPool = winnerBets.reduce((s, b) => s + Number(b.amount), 0);
     const totalLosePool = allBets
       .filter((b) => b.side === losingSide)
-      .reduce((s, b) => s + b.amount, 0);
+      .reduce((s, b) => s + Number(b.amount), 0);
 
     // Payout Engine — proportional distribution of loser pool to winners
     await prisma.$transaction(async (tx: any) => {
@@ -188,8 +188,8 @@ router.post("/markets/:id/resolve", async (req: Request, res: Response): Promise
       // Refund + payout each winner
       for (const bet of winnerBets) {
         // Proportional share of loser pool
-        const share = totalWinPool > 0 ? (bet.amount / totalWinPool) * totalLosePool : 0;
-        const payout = bet.amount + share;
+        const share = totalWinPool > 0 ? (Number(bet.amount) / totalWinPool) * totalLosePool : 0;
+        const payout = Number(bet.amount) + share;
 
         await tx.user.update({
           where: { id: bet.userId },
